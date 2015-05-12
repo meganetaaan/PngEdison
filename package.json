@@ -1,0 +1,17 @@
+{
+  "name": "PngEdison",
+  "version": "0.0.1",
+  "description": "yet another oled-js on edison sample",
+  "main": "main.js",
+  "dependencies": {
+    "oled-js": "KhaosT/oled-js",
+    "png-to-lcd" : "1.0.2"
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shinya Ishikawa",
+  "license": "MIT"
+}
