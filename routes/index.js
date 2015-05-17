@@ -11,7 +11,7 @@ router.get('/', function(req, res){
     res.send('hello world');
 });
 
-router.get('/disp/bitmap/', function (req, res) {
+router.post('/disp/bitmap/', function (req, res) {
     var bmpStr = req.param('bmpstr', '0101010101010101');
     var bmpArr = bmpStr.split('');
     for(var i = 0; i < bmpArr.length; i++){
