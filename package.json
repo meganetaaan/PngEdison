@@ -1,17 +1,19 @@
 {
-  "name": "PngEdison",
-  "version": "0.0.1",
-  "description": "yet another oled-js on edison sample",
-  "main": "main.js",
+  "name": "oledison",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
   "dependencies": {
+    "body-parser": "~1.12.0",
+    "cookie-parser": "~1.3.4",
+    "debug": "~2.1.1",
+    "express": "~4.12.2",
+    "jade": "~1.9.2",
+    "morgan": "~1.5.1",
+    "serve-favicon": "~2.2.0",
     "oled-js": "KhaosT/oled-js",
     "png-to-lcd" : "1.0.2"
-  },
-  "devDependencies": {
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Shinya Ishikawa",
-  "license": "MIT"
+  }
 }
