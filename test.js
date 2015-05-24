@@ -1,3 +1,9 @@
+Oled = require('oled-js');
+var oled = new Oled({
+        width: 64,
+        height : 48});
+var pngparse = require('pngparse');
+
 var sourceStr = process.argv[2];
 var Iconv = require('iconv').Iconv;
 var iconv = new Iconv('UTF-8', 'EUC-JP');
@@ -26,5 +32,10 @@ fs.createReadStream('public/images/misaki8x8.png')
             var sx = (str[i * 2 + 1] - 1) * width;
             this.bitblt(subImg, sx, sy, width, height, i * width, 0);
         }
-        //subImg.pack().pipe(fs.createWriteStream('out.png'));
+        subImg.pack().pipe(fs.createWriteStream('out.png'))
+        .on('end', function(){
+            pngparse.parseFile('out.png', function (err, image) {
+                oled.drawBitmap(image.data);
+            });
+        });
     });
