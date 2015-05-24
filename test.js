@@ -2,7 +2,7 @@ Oled = require('oled-js');
 var oled = new Oled({
         width: 64,
         height : 48});
-var pngparse = require('pngparse');
+var pngtolcd = require('png-to-lcd');
 
 var sourceStr = process.argv[2];
 var Iconv = require('iconv').Iconv;
@@ -34,8 +34,9 @@ fs.createReadStream('public/images/misaki8x8.png')
         }
         subImg.pack().pipe(fs.createWriteStream('out.png'))
         .on('end', function(){
-            pngparse.parseFile('out.png', function (err, image) {
-                oled.drawBitmap(image.data);
+            pngtolcd('out.png', false, function (err, bitmap) {
+                oled.buffer = bitmap
+                oled.update();
             });
         });
     });
