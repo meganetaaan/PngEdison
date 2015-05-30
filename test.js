@@ -2,7 +2,10 @@ Oled = require('oled-js');
 var oled = new Oled({
         width: 64,
         height : 48});
+oled.clearDisplay();
+oled.dimDisplay(true);
 var pngtolcd = require('png-to-lcd');
+var sleep = require('sleep');
 
 var sourceStr = process.argv[2];
 var Iconv = require('iconv').Iconv;
@@ -17,11 +20,18 @@ var kuten2 = function(str){
 };
 
 var fs = require('fs'),
-    PNG = require('node-png').PNG;
+PNG = require('node-png').PNG;
+
+pngtolcd('hifive_mini.png', false, function (err, bitmap) {
+	oled.buffer = bitmap;
+	oled.update();
+});
+
 // prepare font source
 fs.createReadStream('public/images/misaki8x8.png')
     .pipe(new PNG())
     .on('parsed', function () {
+	console.log('parsed');
         var str = kuten2(sourceStr);
         var width = 8;
         var height = 8;
@@ -32,11 +42,28 @@ fs.createReadStream('public/images/misaki8x8.png')
             var sx = (str[i * 2 + 1] - 1) * width;
             this.bitblt(subImg, sx, sy, width, height, i * width, 0);
         }
+
+	console.log('subImg');
         subImg.pack().pipe(fs.createWriteStream('out.png'))
-        .on('end', function(){
+        .on('close', function(){
+	    console.log('pngtolcd');
             pngtolcd('out.png', false, function (err, bitmap) {
-                oled.buffer = bitmap
-                oled.update();
+		console.log('bitmap');
+		for(var i = 0; i < bitmap.length; i++){
+			bitmap[i] = ~bitmap[i];
+		}
+		console.log(bitmap);
+		oled.update();
+		var buf = new Buffer(64);
+		for(var i = 0; i < bitmap.length; i++){
+			bitmap.copy(buf, 0, i, i + 64);
+			//console.log(buf);
+			oled.updatePage(5, buf);
+			sleep.usleep(60500);
+		}
             });
-        });
+        })
+	.on('error', function(exception){
+		console.err(exception);
+	});
     });
