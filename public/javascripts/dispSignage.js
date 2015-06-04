@@ -1,4 +1,5 @@
 var Oled = require('oled-js');
+var Promise = require('promise');
 
 var oled = new Oled({
         width: 64,
@@ -13,9 +14,9 @@ var utf8ToEucjp = new Iconv('UTF-8', 'EUC-JP');
 var utf8ToSjis = new Iconv('UTF-8', 'SHIFT-JIS');
 
 var jis = function (str) {
-    var i;
-    var buf = utf8ToSJis.convert(str);
-    return buf;
+    var buf = utf8ToSjis.convert(str);
+    return [buf[0] >> 4,
+            buf[0] & 0x0f];
 }
 
 var kuten = function(str){
@@ -27,7 +28,7 @@ var kuten = function(str){
     return buf;
 };
 
-var isHalfChar = function (c) {
+var isHalfChar = function (ch) {
     var c = ch.charCodeAt(0);
     return c < 256 || (c >= 0xff61 && c <= 0xff9f);
 }
@@ -36,44 +37,45 @@ var png8x8,
 png4x8;
 
 var strToPng = function (str) {
-    if(typeof str != 'string'){
-        throw 'IllegalArgumentException';
-    }
     var width = 8,
-    height = 8;
-    var resultImage = new PNG({"width" : width * sourceStr.length, "height" : height});
-
+        height = 8;
+    var resultImage = new PNG({"width" : width * str.length, "height" : height});
+    var arr = str.split('');
     var i = 0;
-    for(c in str.split('')){
+    var count;
+    var c;
+    for(count = 0; count < arr.length; count++){
+        c = arr[count];
         if (isHalfChar(c)){
+	    width = 4;
             var buf = jis(c);
-            png4x8.bitblt(resultImage, buf[1] * width, buf[0] * height, width, height, i * width, 0);
-            i += 0.5;
+            png4x8.bitblt(resultImage, buf[1] * width, buf[0] * height, width, height, i, 0);
+            i += 4;
         } else {
+            width = 8;
             var buf = kuten(c);
-            png8x8.bitblt(resultImage, buf[1] * width, buf[0] * height, width, height, i * width, 0);
-            i += 1;
+            png8x8.bitblt(resultImage, (buf[1] - 1) * width, (buf[0] - 1) * height, width, height, i, 0);
+            i += 8;
         }
     }
-    return resultImage;
+    var img = new PNG({"width" : i, "height" : height});
+    resultImage.bitblt(img, 0, 0, i, height, 0, 0);
+    //return resultImage;
+    return img;
 }
 
 var scrollPng = function (png) {
     png.pack().pipe(fs.createWriteStream('tmp/out.png'))
     .on('close', function(){
-        console.log('pngtolcd');
         pngtolcd('tmp/out.png', false, function (err, bitmap) {
-            console.log('bitmap');
             var i;
             for(i = 0; i < bitmap.length; i++){
                 bitmap[i] = ~bitmap[i];
             }
-            console.log(bitmap);
             oled.update();
             var buf = new Buffer(64);
             for(i = 0; i < bitmap.length; i++){
                 bitmap.copy(buf, 0, i, i + 64);
-                //console.log(buf);
                 oled.updatePage(5, buf);
                 sleep.usleep(60500);
             }
@@ -113,47 +115,3 @@ Promise.all(tasks).then(function(results){
     png4x8 = results[1];
     scrollPng(strToPng(sourceStr));
 });
-
-/*
-// prepare font source
-fs.createReadStream('public/images/misaki8x8.png')
-.pipe(new PNG())
-.on('parsed', function () {
-    console.log('parsed');
-    var str = kuten2(sourceStr);
-    var width = 8,
-    height = 8;
-    var subImg = new PNG({"width" : width * sourceStr.length, "height" : height});
-    var i, sy, sx;
-
-    for(i = 0; i < sourceStr.length; i++){
-        sy = (str[i * 2] - 1) * height;
-        sx = (str[i * 2 + 1] - 1) * width;
-        this.bitblt(subImg, sx, sy, width, height, i * width, 0);
-    }
-
-    console.log('subImg');
-    subImg.pack().pipe(fs.createWriteStream('out.png'))
-    .on('close', function(){
-        console.log('pngtolcd');
-        pngtolcd('out.png', false, function (err, bitmap) {
-            console.log('bitmap');
-            for(i = 0; i < bitmap.length; i++){
-                bitmap[i] = ~bitmap[i];
-            }
-            console.log(bitmap);
-            oled.update();
-            var buf = new Buffer(64);
-            for(i = 0; i < bitmap.length; i++){
-                bitmap.copy(buf, 0, i, i + 64);
-                //console.log(buf);
-                oled.updatePage(5, buf);
-                sleep.usleep(60500);
-            }
-        });
-    })
-    .on('error', function(exception){
-        console.err(exception);
-    });
-});
-*/
