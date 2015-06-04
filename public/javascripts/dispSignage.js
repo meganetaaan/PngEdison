@@ -33,26 +33,27 @@ var isHalfChar = function (c) {
 }
 
 var png8x8,
-    png4x8;
+png4x8;
 
 var strToPng = function (str) {
     if(typeof str != 'string'){
         throw 'IllegalArgumentException';
     }
     var width = 8,
-        height = 8;
+    height = 8;
     var resultImage = new PNG({"width" : width * sourceStr.length, "height" : height});
 
     var i = 0;
     for(c in str.split('')){
         if (isHalfChar(c)){
-        var buf = jis(c);
-        png4x8.bitblt(resultImage, buf[1] * width, buf[0] * height, width, height, i * width, 0);
-        i += 0.5;
+            var buf = jis(c);
+            png4x8.bitblt(resultImage, buf[1] * width, buf[0] * height, width, height, i * width, 0);
+            i += 0.5;
         } else {
-        var buf = kuten(c);
-        png8x8.bitblt(resultImage, buf[1] * width, buf[0] * height, width, height, i * width, 0);
-        i += 1;
+            var buf = kuten(c);
+            png8x8.bitblt(resultImage, buf[1] * width, buf[0] * height, width, height, i * width, 0);
+            i += 1;
+        }
     }
     return resultImage;
 }
@@ -87,8 +88,8 @@ var fs = require('fs'),
 PNG = require('node-png').PNG;
 
 pngtolcd('hifive_mini.png', false, function (err, bitmap) {
-	oled.buffer = bitmap;
-	oled.update();
+    oled.buffer = bitmap;
+    oled.update();
 });
 
 function readPng(path){
@@ -116,43 +117,43 @@ Promise.all(tasks).then(function(results){
 /*
 // prepare font source
 fs.createReadStream('public/images/misaki8x8.png')
-    .pipe(new PNG())
-    .on('parsed', function () {
-	console.log('parsed');
-        var str = kuten2(sourceStr);
-        var width = 8,
-            height = 8;
-        var subImg = new PNG({"width" : width * sourceStr.length, "height" : height});
-        var i, sy, sx;
+.pipe(new PNG())
+.on('parsed', function () {
+    console.log('parsed');
+    var str = kuten2(sourceStr);
+    var width = 8,
+    height = 8;
+    var subImg = new PNG({"width" : width * sourceStr.length, "height" : height});
+    var i, sy, sx;
 
-        for(i = 0; i < sourceStr.length; i++){
-            sy = (str[i * 2] - 1) * height;
-            sx = (str[i * 2 + 1] - 1) * width;
-            this.bitblt(subImg, sx, sy, width, height, i * width, 0);
-        }
+    for(i = 0; i < sourceStr.length; i++){
+        sy = (str[i * 2] - 1) * height;
+        sx = (str[i * 2 + 1] - 1) * width;
+        this.bitblt(subImg, sx, sy, width, height, i * width, 0);
+    }
 
-	console.log('subImg');
-        subImg.pack().pipe(fs.createWriteStream('out.png'))
-        .on('close', function(){
-	    console.log('pngtolcd');
-            pngtolcd('out.png', false, function (err, bitmap) {
-		console.log('bitmap');
-		for(i = 0; i < bitmap.length; i++){
-			bitmap[i] = ~bitmap[i];
-		}
-		console.log(bitmap);
-		oled.update();
-		var buf = new Buffer(64);
-		for(i = 0; i < bitmap.length; i++){
-			bitmap.copy(buf, 0, i, i + 64);
-			//console.log(buf);
-			oled.updatePage(5, buf);
-			sleep.usleep(60500);
-		}
-            });
-        })
-	.on('error', function(exception){
-		console.err(exception);
-	});
+    console.log('subImg');
+    subImg.pack().pipe(fs.createWriteStream('out.png'))
+    .on('close', function(){
+        console.log('pngtolcd');
+        pngtolcd('out.png', false, function (err, bitmap) {
+            console.log('bitmap');
+            for(i = 0; i < bitmap.length; i++){
+                bitmap[i] = ~bitmap[i];
+            }
+            console.log(bitmap);
+            oled.update();
+            var buf = new Buffer(64);
+            for(i = 0; i < bitmap.length; i++){
+                bitmap.copy(buf, 0, i, i + 64);
+                //console.log(buf);
+                oled.updatePage(5, buf);
+                sleep.usleep(60500);
+            }
+        });
+    })
+    .on('error', function(exception){
+        console.err(exception);
     });
+});
 */
