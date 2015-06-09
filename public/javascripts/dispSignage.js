@@ -74,11 +74,23 @@ var scrollPng = function (png) {
             }
             oled.update();
             var buf = new Buffer(64);
+            for(i = 0;;){
+                bitmap.copy(buf, 0, i, Math.min(bitmap.length, i + 64));
+		if(bitmap.length < i + 64){
+		    bitmap.copy(buf, bitmap.length - i, 0, i % bitmap.length);
+		}
+		i = (i + 1) % bitmap.length;
+                oled.updatePage(5, buf);
+		//console.log('i: ' + i + ', bitmap.length: ' + bitmap.length);
+                sleep.usleep(60500);
+	    }
+	    /*
             for(i = 0; i < bitmap.length; i++){
                 bitmap.copy(buf, 0, i, i + 64);
                 oled.updatePage(5, buf);
                 sleep.usleep(60500);
             }
+            */
         });
     })
     .on('error', function(exception){
